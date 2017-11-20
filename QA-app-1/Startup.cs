@@ -4,10 +4,16 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using IdentityServer4.AccessTokenValidation;
 using Swashbuckle.AspNetCore.Swagger;
+using QA_app_1.data;
+using QA_app_1.Models;
 
 namespace QA_app_1
 {
@@ -23,13 +29,59 @@ namespace QA_app_1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc();
+            services.AddDbContext<ApplicationDBcontext>(options =>
+                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            services.AddIdentity<ApplicationUser, IdentityRole>()
+                .AddEntityFrameworkStores<ApplicationDBcontext>()
+                .AddDefaultTokenProviders();
+
+            services.AddAuthorization(options =>
+            {
+                // Policy for dashboard: only administrator role.
+                options.AddPolicy("Manage administrator", policy => policy.RequireRole("administrator"));
+                // Policy for resources: user or administrator roles. 
+                options.AddPolicy("Access Resources", policy => policy.RequireRole("administrator", "user"));
+            });
+
+            services.Configure<IdentityOptions>(options =>
+            {
+                // Password settings.
+                options.Password.RequireDigit = true;
+                options.Password.RequiredLength = 8;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireLowercase = false;
+                // Lockout settings.
+                options.Lockout.AllowedForNewUsers = true;
+                options.Lockout.MaxFailedAccessAttempts = 3;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromDays(1);
+            });
 
             // Register the Swagger generator, defining one or more Swagger documents
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new Info { Title = "My API", Version = "v1" });
             });
+
+            services.AddIdentityServer()
+                .AddDeveloperSigningCredential()
+                .AddInMemoryPersistedGrants()
+                .AddInMemoryIdentityResources(Config.GetIdentityResources())
+                .AddInMemoryApiResources(Config.GetApiResources())
+                .AddInMemoryClients(Config.GetClients())
+                .AddAspNetIdentity<ApplicationUser>();
+
+            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+              .AddIdentityServerAuthentication(options =>
+              {
+                  options.Authority = "http://localhost:6271/";
+                  options.RequireHttpsMetadata = false;
+                  options.ApiName = "WebAPI";
+              });
+
+            services.AddTransient<IDBInitializer, DatabaseInitializer>();
+            services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -47,6 +99,17 @@ namespace QA_app_1
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+            }
+
+            app.UseStatusCodePages();
+
+            app.UseIdentityServer();
+
+            app.UseAuthentication();
+
+            /*if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
                 app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
                 {
                     HotModuleReplacement = true
@@ -55,7 +118,7 @@ namespace QA_app_1
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-            }
+            }*/
 
             app.UseStaticFiles();
 
@@ -69,6 +132,7 @@ namespace QA_app_1
                     name: "spa-fallback",
                     defaults: new { controller = "Home", action = "Index" });
             });
+
         }
     }
 }
