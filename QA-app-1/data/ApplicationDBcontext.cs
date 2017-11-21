@@ -10,9 +10,15 @@ namespace QA_app_1.data
 {
     public class ApplicationDBcontext : IdentityDbContext<ApplicationUser>
     {
+<<<<<<< HEAD
         public ApplicationDBcontext(DbContextOptions<ApplicationDBcontext> options)
             : base(options)
         {
+=======
+        public ApplicationDBcontext(DbContextOptions<ApplicationDBcontext> options)
+            : base(options)
+        {
+>>>>>>> 24111984b2c67c9d9ee1a893ac51ec75ecd1dbf4
         }
     }
 }

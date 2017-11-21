@@ -30,7 +30,11 @@ namespace QA_app_1
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ApplicationDBcontext>(options =>
+<<<<<<< HEAD
                  options.UseSqlServer("Server = (localdb)\\mssqllocaldb; Database = QA_app; Trusted_Connection = True; MultipleActiveResultSets = true"));
+=======
+                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+>>>>>>> 24111984b2c67c9d9ee1a893ac51ec75ecd1dbf4
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDBcontext>()
@@ -82,10 +86,13 @@ namespace QA_app_1
 
             services.AddTransient<IDBInitializer, DatabaseInitializer>();
             services.AddMvc();
+<<<<<<< HEAD
 
             
 
 
+=======
+>>>>>>> 24111984b2c67c9d9ee1a893ac51ec75ecd1dbf4
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
