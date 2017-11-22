@@ -183,6 +183,7 @@ namespace QAapp1.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("QA_app_1.Models.PostModels.ClassroomModel", b =>
                 {
                     b.Property<int>("classroomId")
@@ -221,6 +222,8 @@ namespace QAapp1.Migrations
                     b.ToTable("ResponseModel");
                 });
 
+=======
+>>>>>>> 96852c35dd925ce88d8bb1d7924ea113a38be696
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole")
